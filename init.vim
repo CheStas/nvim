@@ -8,7 +8,9 @@ set autoindent
 set tabstop=2
 set shiftwidth=2
 set updatetime=300
-syntax on 
+set ignorecase
+set smartcase
+syntax on
 
 call plug#begin()
 Plug 'lukas-reineke/indent-blankline.nvim'
@@ -26,10 +28,12 @@ Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'projekt0n/github-nvim-theme'
 Plug 'dense-analysis/ale'
+Plug 'glepnir/dashboard-nvim'
 call plug#end()
 
 " opt.listchars:append("space:.")
 " opt.listchars:append("eol:")
+let g:dashboard_default_executive = 'telescope'
 lua require("indent_blankline").setup {}
 let g:show_end_of_line = "true"
 let g:space_char_blankline = " "
@@ -49,15 +53,37 @@ colorscheme github_dark
 lua require'nvim-web-devicons'.setup {}
 lua <<EOF
 require'nvim-tree'.setup {
+  open_on_setup = true,
   view = {
     side = 'left',
     auto_resize = false,
-    width = 30,
+    width = 60,
+    number = true,
+    relativenumber = false,
+  },
+  update_focused_file = {
+    enable = true,
+    update_cwd = true,
+    ignore_list = {},
   }
 }
 EOF
 lua require'telescope'.setup {}
 lua require'telescope'.load_extension('fzf')
+
+" advanced repgrep integration
+function! RipgrepFzf(query, fullscreen)
+  let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case '
+  let initial_command = command_fmt.(a:query)
+  "let initial_command = printf(command_fmt, shellescape(a:query))
+  let reload_command = printf(command_fmt.('%s'), '{q}')
+  let spec = {'options': ['--phony', '--query', a:query, '--bind', 'change:reload:eval '.reload_command]}
+  call fzf#vim#grep(initial_command, 1, fzf#vim#with_preview(spec), a:fullscreen)
+endfunction
+
+command! -nargs=* -bang RG call RipgrepFzf(<q-args>, <bang>0)
+" END advanced repgrep integration
+
 lua <<EOF
 require'nvim-treesitter.configs'.setup {
   highlight = {
@@ -72,10 +98,11 @@ require'nvim-treesitter.configs'.setup {
 EOF
 
 " lovecrafts makers customer auto
+" autocmd BufWritePost /Users/stas/projects/lovecrafts/makers/*/** !prettier --config /Users/stas/projects/lovecrafts/makers/.prettierrc --write %
 autocmd BufWritePost /Users/stas/projects/lovecrafts/makers/*/** !/Users/stas/projects/lovecrafts/rebuild_makers.sh %
-" lovecrafts makers end
 
 nnoremap ff <cmd>Telescope find_files<cr>
+nnoremap fw <cmd>:Rg! <cr>
 
 nmap <silent> gd <Plug>(coc-definition)
 nmap <silent> gy <Plug>(coc-type-definition)
@@ -86,7 +113,7 @@ nmap <silent> ]g <Plug>(coc-diagnostic-next)
 " Remap keys for applying codeAction to the current buffer.
 nmap <leader>ac  <Plug>(coc-codeaction)
 " Apply AutoFix to problem on the current line.
-nmap <leader>qf  <Plug>(coc-fix-current)
+nmap qf <Plug>(coc-fix-current)
 " Run the Code Lens action on the current line.
 nmap <leader>cl  <Plug>(coc-codelens-action)
 
