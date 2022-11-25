@@ -17,7 +17,10 @@ Plug 'lukas-reineke/indent-blankline.nvim'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
-Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'} 
+" to highlight syntax don't forget to run
+" :TSInstall javascript, vue, css scss dockerfile html json json5 lua make php regex typescript vim
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdateSync'}
+Plug 'nvim-treesitter/nvim-treesitter-context'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim'
 Plug 'kyazdani42/nvim-web-devicons'
@@ -29,6 +32,7 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'projekt0n/github-nvim-theme'
 Plug 'dense-analysis/ale'
 Plug 'glepnir/dashboard-nvim'
+Plug 'christoomey/vim-tmux-navigator'
 call plug#end()
 
 " opt.listchars:append("space:.")
@@ -94,15 +98,26 @@ require'nvim-treesitter.configs'.setup {
     -- Instead of true it can also be a list of languages
     additional_vim_regex_highlighting = false,
   },
+  incremental_selection = {
+    enable = true,
+    keymaps = {
+      init_selection = "gnn",
+      node_incremental = "grn",
+      scope_incremental = "grc",
+      node_decremental = "grm",
+    },
+  },
 }
 EOF
 
 " lovecrafts makers customer auto
 " autocmd BufWritePost /Users/stas/projects/lovecrafts/makers/*/** !prettier --config /Users/stas/projects/lovecrafts/makers/.prettierrc --write %
 autocmd BufWritePost /Users/stas/projects/lovecrafts/makers/*/** !/Users/stas/projects/lovecrafts/rebuild_makers.sh %
+autocmd BufWritePost /Users/stas/projects/lovecrafts/graph-gateway/*/** !/Users/stas/projects/lovecrafts/rebuild_graph_gateway.sh %
 
 nnoremap ff <cmd>Telescope find_files<cr>
 nnoremap fw <cmd>:Rg! <cr>
+nnoremap tt <cmd>:NvimTreeToggle <cr>
 
 nmap <silent> gd <Plug>(coc-definition)
 nmap <silent> gy <Plug>(coc-type-definition)
